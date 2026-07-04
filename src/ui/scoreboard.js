@@ -31,9 +31,25 @@ export function connectScoreboard(scoreTable, video, mogi) {
 		const races = mogi.races;
 		let totalScore = 0;
 
+		// Previous-race scores for rank-change arrows
+		const prevTotals = new Map();
+		if (races.length > 1) {
+			for (const race of races.slice(0, -1)) {
+				for (const [pid, score] of race.calculatePlayerScores()) {
+					prevTotals.set(pid, (prevTotals.get(pid) ?? 0) + score);
+				}
+			}
+		}
+		const prevTotalsPerTeam = new Map();
+		prevTotals.forEach((score, playerId) => {
+			const pl = mogi.roster.byId(playerId);
+			if (pl) prevTotalsPerTeam.set(pl.seed, (prevTotalsPerTeam.get(pl.seed) || 0) + score);
+		});
+
 		// Build <thead>
 		const thead = document.createElement('thead');
 		const hr = document.createElement('tr');
+		const hRank = document.createElement('th'); hRank.textContent = '#'; hr.appendChild(hRank);
 		if (mogi.playersPerTeam > 1) {
 			const hTeam = document.createElement('th'); hTeam.textContent = t('scoreboard.team'); hr.appendChild(hTeam);
 		}
@@ -47,10 +63,14 @@ export function connectScoreboard(scoreTable, video, mogi) {
 		}
 		thead.appendChild(hr);
 
+		// Total visual columns per row, used to align the gap-row divider under the Total column
+		const totalCols = 1 /* # */ + (mogi.playersPerTeam > 1 ? 1 : 0) /* team */ + 1 /* player */ + RACE_COUNT + (mogi.playersPerTeam > 1 ? 2 : 1) /* total */;
+
 		// Build <tbody>
 		const tbody = document.createElement('tbody');
 		tbody.classList.toggle('team-mode', mogi.playersPerTeam > 1);
 		let team = null;
+		let prevGroupScore = null;
 		for (const p of roster) {
 			const tr = document.createElement('tr');
 			const teamScore = totalsPerTeam.get(p.seed) || 0;
@@ -58,19 +78,49 @@ export function connectScoreboard(scoreTable, video, mogi) {
 			const teamRank = teamScore > 0 ? Array.from(totalsPerTeam.values()).filter(x => x > teamScore).length + 1 : 0;
 			const playerRank = playerScore > 0 ? Array.from(totals.values()).filter(x => x > playerScore).length + 1 : 0;
 
-			if (mogi.playersPerTeam > 1 && team !== null && team !== p.seed) {
-				const prevScore = totalsPerTeam.get(team) || 0;
-				const nextScore = totalsPerTeam.get(p.seed) || 0;
-				const diff = prevScore - nextScore;
-				const dividerRow = document.createElement('tr');
-				dividerRow.className = 'team-diff-row';
-				const tdSpacer = document.createElement('td');
-				tdSpacer.colSpan = RACE_COUNT + 3;
-				const tdDiff = document.createElement('td');
-				tdDiff.textContent = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : `=`;
-				tdDiff.className = diff > 0 ? 'team-diff team-diff--ahead' : diff < 0 ? 'team-diff team-diff--behind' : 'team-diff team-diff--tied';
-				dividerRow.append(tdSpacer, tdDiff);
-				tbody.appendChild(dividerRow);
+			// True for first player of each team (or every player in FFA)
+			const isFirstOfTeam = mogi.playersPerTeam === 1 || team !== p.seed;
+
+			// Rank cell (#) — added before team/player cells
+			if (isFirstOfTeam) {
+				const rowSpan = mogi.playersPerTeam > 1 ? mogi.playersPerTeam : 1;
+				const rank = mogi.playersPerTeam > 1 ? teamRank : playerRank;
+				const prevScore = mogi.playersPerTeam > 1
+					? (prevTotalsPerTeam.get(p.seed) || 0)
+					: (prevTotals.get(p.id) ?? 0);
+				const prevRank = races.length <= 1 ? rank : mogi.playersPerTeam > 1
+					? Array.from(prevTotalsPerTeam.values()).filter(x => x > prevScore).length + 1
+					: Array.from(prevTotals.values()).filter(x => x > prevScore).length + 1;
+				const rankChange = races.length <= 1 ? 0 : prevRank - rank;
+
+				const tdRank = document.createElement('td');
+				tdRank.classList.add('mono');
+				if (rowSpan > 1) tdRank.rowSpan = rowSpan;
+				tdRank.textContent = rank > 0 ? String(rank) : '—';
+				if (rank > 0 && races.length > 1 && rankChange !== 0) {
+					const span = document.createElement('span');
+					span.className = rankChange > 0 ? 'positive' : 'negative';
+					span.textContent = rankChange > 0 ? ` ↑${rankChange}` : ` ↓${Math.abs(rankChange)}`;
+					tdRank.appendChild(span);
+				}
+				tr.appendChild(tdRank);
+			}
+
+			if (isFirstOfTeam) {
+				const groupScore = mogi.playersPerTeam > 1 ? teamScore : playerScore;
+				if (prevGroupScore !== null) {
+					const gap = prevGroupScore - groupScore;
+					const gapRow = document.createElement('tr');
+					gapRow.className = 'gap-row';
+					const tdSpacer = document.createElement('td');
+					tdSpacer.colSpan = totalCols - 1;
+					const tdGap = document.createElement('td');
+					tdGap.textContent = gap > 0 ? `+${gap}` : gap < 0 ? `${gap}` : `=`;
+					tdGap.className = gap > 0 ? 'gap-value gap-value--ahead' : gap < 0 ? 'gap-value gap-value--behind' : 'gap-value gap-value--tied';
+					gapRow.append(tdSpacer, tdGap);
+					tbody.appendChild(gapRow);
+				}
+				prevGroupScore = groupScore;
 			}
 
 			if (mogi.playersPerTeam > 1 && team !== p.seed) {
@@ -146,6 +196,7 @@ export function connectScoreboard(scoreTable, video, mogi) {
 		// Build <tfoot> with Edit buttons per race column
 		const tfoot = document.createElement('tfoot');
 		const fr = document.createElement('tr');
+		fr.appendChild(document.createElement('td')); // # column placeholder
 		const rosterButton = document.createElement('button');
 		rosterButton.textContent = t('scoreboard.editRosterButton');
 		rosterButton.addEventListener('click', () => openEditRoster(mogi, video));

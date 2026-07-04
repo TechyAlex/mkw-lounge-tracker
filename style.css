@@ -253,7 +253,7 @@ table.score .team-icon {
 	font-size: 22px;
 }
 
-table.score .team-diff-row td {
+table.score .gap-row td {
 	text-align: center;
 	font-size: 12px;
 	padding: 2px 0;
@@ -261,9 +261,9 @@ table.score .team-diff-row td {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-table.score .team-diff--ahead { color: #4ade80; }
-table.score .team-diff--behind { color: #f87171; }
-table.score .team-diff--tied { color: #9aa0a6; }
+table.score .gap-value--ahead { color: #4ade80; }
+table.score .gap-value--behind { color: #f87171; }
+table.score .gap-value--tied { color: #9aa0a6; }
 
 .positive { color: #4ade80; }
 .negative { color: #f87171; }

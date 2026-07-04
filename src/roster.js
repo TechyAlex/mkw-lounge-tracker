@@ -80,8 +80,9 @@ export class Roster {
 		}
 
 		const tier = first?.match(/Tier (\w+)$/);
-		if( !tier) throw new Error(t('rosterSetup.badLine', { line:first }));
-		const roster = new Roster(tier[1]);
+		const isSQHeader = !tier && first?.match(/^Room\s+\d+/i);
+		if( !tier && !isSQHeader) throw new Error(t('rosterSetup.badLine', { line:first }));
+		const roster = new Roster(tier ? tier[1] : 'SQ');
 		const re = /^(\d+)\.\s+(.*?)\s+\((\d+)\s*MMR\)$/;
 		for( const line of lines) {
 			const m = re.exec(line);

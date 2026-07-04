@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mkw-lounge-tracker",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "8765", "/Users/alexgallawa/Documents/GitHub/mkw-lounge-tracker"],
+      "port": 8765
+    }
+  ]
+}
