@@ -29,6 +29,7 @@ async function main() {
 	const useOverlayToggle = /** @type {HTMLInputElement} */(document.getElementById('useOverlay'));
 	const outputOl = /** @type {HTMLOListElement} */(document.getElementById('output'));
 	const scoreTable = /** @type {HTMLTableElement} */(document.getElementById('scoreTable'));
+	const gapTable = /** @type {HTMLTableElement} */(document.getElementById('gapTable'));
 	const raceGallery = /** @type {HTMLDivElement} */(document.getElementById('raceGallery'));
 	const snapshotButton = /** @type {HTMLButtonElement} */(document.getElementById('snapshotScores'));
 	const exportBtn = /** @type {HTMLButtonElement} */(document.getElementById('exportScores'));
@@ -44,8 +45,8 @@ async function main() {
 	setupCaptureButton(captureBtn, video, outputOl, mogi);
 	setupAutoCapture(autoCaptureToggle, captureBtn, video, mogi);
 	setupOverlay(useOverlayToggle, mogi);
-	connectScoreboard(scoreTable, video, mogi);
-	connectScoreboardScreenshotter(snapshotButton, scoreTable);
+	connectScoreboard(scoreTable, gapTable, video, mogi);
+	connectScoreboardScreenshotter(snapshotButton, scoreTable, gapTable);
 	connectExportButton(exportBtn, downloadBtn, mogi);
 	connectGallery(raceGallery, mogi);
 

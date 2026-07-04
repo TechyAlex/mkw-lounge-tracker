@@ -9,10 +9,11 @@ import { success } from "./toast.js";
 
 /**
  * @param {HTMLTableElement} scoreTable
+ * @param {HTMLTableElement} gapTable
  * @param {HTMLVideoElement} video
  * @param {Mogi} mogi
  */
-export function connectScoreboard(scoreTable, video, mogi) {
+export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 	mogi.addEventListener('update', () => {
 		const roster = [...mogi.roster];
 		const totals = mogi.calculatePlayerScores();
@@ -63,14 +64,22 @@ export function connectScoreboard(scoreTable, video, mogi) {
 		}
 		thead.appendChild(hr);
 
-		// Total visual columns per row, used to align the gap-row divider under the Total column
-		const totalCols = 1 /* # */ + (mogi.playersPerTeam > 1 ? 1 : 0) /* team */ + 1 /* player */ + RACE_COUNT + (mogi.playersPerTeam > 1 ? 2 : 1) /* total */;
+		// Per-row gap value: shown in the row that is the last of its group (player in FFA, team in team mode),
+		// representing the score gap down to the next group. Rendered in a separate offset table so it visually
+		// sits at the boundary between the two rows/groups it compares.
+		const gapValues = roster.map((p, i) => {
+			const next = roster[i + 1];
+			if (!next) return null;
+			if (mogi.playersPerTeam > 1 && next.seed === p.seed) return null;
+			const thisScore = mogi.playersPerTeam > 1 ? (totalsPerTeam.get(p.seed) || 0) : (totals.get(p.id) || 0);
+			const nextScore = mogi.playersPerTeam > 1 ? (totalsPerTeam.get(next.seed) || 0) : (totals.get(next.id) || 0);
+			return thisScore - nextScore;
+		});
 
 		// Build <tbody>
 		const tbody = document.createElement('tbody');
 		tbody.classList.toggle('team-mode', mogi.playersPerTeam > 1);
 		let team = null;
-		let prevGroupScore = null;
 		for (const p of roster) {
 			const tr = document.createElement('tr');
 			const teamScore = totalsPerTeam.get(p.seed) || 0;
@@ -104,23 +113,6 @@ export function connectScoreboard(scoreTable, video, mogi) {
 					tdRank.appendChild(span);
 				}
 				tr.appendChild(tdRank);
-			}
-
-			if (isFirstOfTeam) {
-				const groupScore = mogi.playersPerTeam > 1 ? teamScore : playerScore;
-				if (prevGroupScore !== null) {
-					const gap = prevGroupScore - groupScore;
-					const gapRow = document.createElement('tr');
-					gapRow.className = 'gap-row';
-					const tdSpacer = document.createElement('td');
-					tdSpacer.colSpan = totalCols - 1;
-					const tdGap = document.createElement('td');
-					tdGap.textContent = gap > 0 ? `+${gap}` : gap < 0 ? `${gap}` : `=`;
-					tdGap.className = gap > 0 ? 'gap-value gap-value--ahead' : gap < 0 ? 'gap-value gap-value--behind' : 'gap-value gap-value--tied';
-					gapRow.append(tdSpacer, tdGap);
-					tbody.appendChild(gapRow);
-				}
-				prevGroupScore = groupScore;
 			}
 
 			if (mogi.playersPerTeam > 1 && team !== p.seed) {
@@ -229,6 +221,41 @@ export function connectScoreboard(scoreTable, video, mogi) {
 
 		// Swap table content
 		scoreTable.replaceChildren(thead, tbody, tfoot);
+
+		// Build the Gap table: a separate single-column table kept in step with the main
+		// table's row heights, then offset by half a row so each value sits at the boundary
+		// between the two rows/groups it compares, instead of adding extra rows to the main table.
+		const gapThead = document.createElement('thead');
+		const gapHr = document.createElement('tr');
+		const gapHeader = document.createElement('th'); gapHeader.textContent = 'Gap'; gapHr.appendChild(gapHeader);
+		gapThead.appendChild(gapHr);
+
+		const gapTbody = document.createElement('tbody');
+		roster.forEach((p, i) => {
+			const tr = document.createElement('tr');
+			const td = document.createElement('td');
+			const gap = gapValues[i];
+			if (gap !== null && gap !== undefined) {
+				td.textContent = gap > 0 ? `+${gap}` : gap < 0 ? `${gap}` : `=`;
+				td.className = gap > 0 ? 'gap-value gap-value--ahead' : gap < 0 ? 'gap-value gap-value--behind' : 'gap-value gap-value--tied';
+			} else {
+				// Non-breaking space keeps this cell's line-box (and thus row height) identical
+				// to a populated cell — an empty <td> would otherwise collapse shorter, throwing
+				// off the row-for-row height match with the main table that the offset relies on.
+				td.textContent = ' ';
+			}
+			tr.appendChild(td);
+			gapTbody.appendChild(tr);
+		});
+
+		const mainRow = scoreTable.tBodies[0]?.rows[0];
+		const rowHeight = mainRow ? mainRow.getBoundingClientRect().height : 0;
+		for (const tr of gapTbody.rows) {
+			tr.style.position = 'relative';
+			tr.style.top = `${rowHeight / 2}px`;
+		}
+
+		gapTable.replaceChildren(gapThead, gapTbody);
 	});
 }
 
@@ -253,12 +280,20 @@ function makeScoreboardDialog() {
 /**
  * @param {HTMLButtonElement} captureButton
  * @param {HTMLTableElement} scoreTable
+ * @param {HTMLTableElement} gapTable
  */
-export function connectScoreboardScreenshotter(captureButton, scoreTable) {
+export function connectScoreboardScreenshotter(captureButton, scoreTable, gapTable) {
 	captureButton.addEventListener('click', () => {
 		const canvas = document.createElement('canvas');
 		const padding = 16;
-		const tableBox = scoreTable.getBoundingClientRect();
+		const scoreBox = scoreTable.getBoundingClientRect();
+		const gapBox = gapTable.getBoundingClientRect();
+		const tableBox = {
+			left: Math.min(scoreBox.left, gapBox.left),
+			top: Math.min(scoreBox.top, gapBox.top),
+			width: Math.max(scoreBox.right, gapBox.right) - Math.min(scoreBox.left, gapBox.left),
+			height: Math.max(scoreBox.bottom, gapBox.bottom) - Math.min(scoreBox.top, gapBox.top)
+		};
 		canvas.width = tableBox.width + padding * 2;
 		canvas.height = tableBox.height + padding * 2;
 		const ctx = ctx2d(canvas);
@@ -316,6 +351,7 @@ export function connectScoreboardScreenshotter(captureButton, scoreTable) {
 			}
 		}
 		drawElementBox(scoreTable, 3); // table, thead/tbody/tfoot, tr, th/td
+		drawElementBox(gapTable, 3);
 
 		function fallbackDialog() {
 			const { dialog, snapshot, close } = makeScoreboardDialog();

@@ -98,7 +98,10 @@
 		<section class="panel" style="max-width:1100px; margin:16px auto;">
 			<h2 data-i18n="scoreboard.title">Scoreboard</h2>
 			<div style="overflow:auto;">
-				<table id="scoreTable" class="score mono" style="width:100%; border-collapse:collapse;"></table>
+				<div class="scoreboard-flex">
+					<table id="scoreTable" class="score mono" style="border-collapse:collapse;"></table>
+					<table id="gapTable" class="score mono gap-table" style="border-collapse:collapse;"></table>
+				</div>
 			</div>
 			<div class="row">
 				<a href="./" class="button btn--danger" data-i18n="scoreboard.newSessionButton">🧹 New session</a>
