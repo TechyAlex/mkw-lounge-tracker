@@ -309,11 +309,11 @@ table.score .place-3 {
 	color: #b56b2c;
 }
 
-table.score tbody tr:nth-child(2n) {
+table.score:not(.gap-table) tbody tr:nth-child(2n) {
 	background: #33333320;
 }
 
-table.score tbody:not(.team-mode) tr:nth-child(n+7) td {
+table.score:not(.gap-table) tbody:not(.team-mode) tr:nth-child(n+7) td {
 	background: #80000020;
 }
 
