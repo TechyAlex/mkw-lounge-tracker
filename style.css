@@ -279,6 +279,12 @@ table.gap-table th {
 	white-space: nowrap;
 }
 
+/* Keep border width/height identical to the main table (for row-height alignment)
+   but hide the line itself so gap values appear to float between rows. */
+table.gap-table tbody td {
+	border-color: transparent;
+}
+
 .positive { color: #4ade80; }
 .negative { color: #f87171; }
 
