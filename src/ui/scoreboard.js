@@ -47,6 +47,24 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 			if (pl) prevTotalsPerTeam.set(pl.seed, (prevTotalsPerTeam.get(pl.seed) || 0) + score);
 		});
 
+		// Build <colgroup>: explicit widths under a fixed table layout, so the race-placement
+		// columns stay narrow (their content is now just 1-2 digit numbers) in favor of more
+		// room for the rank (#) and Player columns. Player is left without a width so it absorbs
+		// whatever space the other, fixed-width columns don't use.
+		const colgroup = document.createElement('colgroup');
+		const colRank = document.createElement('col'); colRank.style.width = '72px'; colgroup.appendChild(colRank);
+		if (mogi.playersPerTeam > 1) {
+			const colTeam = document.createElement('col'); colTeam.style.width = '64px'; colgroup.appendChild(colTeam);
+		}
+		colgroup.appendChild(document.createElement('col')); // Player: flexible
+		for (let i = 0; i < RACE_COUNT; i++) {
+			const colRace = document.createElement('col'); colRace.style.width = '34px'; colgroup.appendChild(colRace);
+		}
+		const colTotal = document.createElement('col'); colTotal.style.width = '60px'; colgroup.appendChild(colTotal);
+		if (mogi.playersPerTeam > 1) {
+			const colTeamTotal = document.createElement('col'); colTeamTotal.style.width = '60px'; colgroup.appendChild(colTeamTotal);
+		}
+
 		// Build <thead>
 		const thead = document.createElement('thead');
 		const hr = document.createElement('tr');
@@ -227,7 +245,7 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 		tfoot.appendChild(fr);
 
 		// Swap table content
-		scoreTable.replaceChildren(thead, tbody, tfoot);
+		scoreTable.replaceChildren(colgroup, thead, tbody, tfoot);
 
 		// Build the Gap table: a separate single-column table kept in step with the main
 		// table's row heights, then offset by half a row so each value sits at the boundary
@@ -255,17 +273,17 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 			gapTbody.appendChild(tr);
 		});
 
-		const mainRow = scoreTable.tBodies[0]?.rows[0];
-		const rowHeight = mainRow ? mainRow.getBoundingClientRect().height : 0;
-		for (const tr of gapTbody.rows) {
-			// Force each row to match the main table's row height exactly (a gap row's own
-			// content is usually shorter, e.g. one line vs. the main table's total+pace lines) —
-			// without this, rows stack using their own shorter natural height and the offset
-			// below drifts further off-boundary with each row.
+		// Match each gap row to its corresponding main-table row individually, not a single
+		// blanket height for all rows — a row can grow taller than the rest (e.g. a long player
+		// name plus the pace annotation wrapping to two lines), and using one uniform height
+		// would leave every gap row after that point drifting further off its true boundary.
+		const mainRows = scoreTable.tBodies[0]?.rows;
+		Array.from(gapTbody.rows).forEach((tr, i) => {
+			const rowHeight = mainRows?.[i]?.getBoundingClientRect().height ?? 0;
 			tr.style.height = `${rowHeight}px`;
 			tr.style.position = 'relative';
 			tr.style.top = `${rowHeight / 2}px`;
-		}
+		});
 
 		gapTable.replaceChildren(gapThead, gapTbody);
 	});
@@ -350,14 +368,34 @@ export function connectScoreboardScreenshotter(captureButton, scoreTable, gapTab
 					ctx.fillText(last.textContent ?? '', box.left + offset, box.top + box.height / 2 + parseInt(lineHeight) / 2);
 					return;
 				}
-				// if element contains text, draw it
+				// if element contains text, draw it. A cell's content isn't always uniformly
+				// styled — e.g. a player name with a smaller/muted pace annotation, or a rank
+				// number with a colored rank-change arrow, both appended as child elements next
+				// to the cell's own text. Draw each child node with its own computed font/color
+				// instead of one style for the whole cell, laid out left-to-right like inline flow.
 				if (el.textContent) {
-					ctx.fillStyle = color;
-					ctx.font = `${fontSize} ${fontFamily}`;
-					ctx.textAlign = textAlign === 'left' ? 'start' : textAlign === 'right' ? 'end' : 'center';
+					const segments = Array.from(el.childNodes)
+						.filter(node => node.textContent)
+						.map(node => {
+							if (node.nodeType === Node.ELEMENT_NODE) {
+								const s = window.getComputedStyle(/** @type {Element} */(node));
+								return { text: node.textContent ?? '', color: s.color, font: `${s.fontSize} ${s.fontFamily}` };
+							}
+							return { text: node.textContent ?? '', color, font: `${fontSize} ${fontFamily}` };
+						});
+					ctx.textAlign = 'left';
 					ctx.textBaseline = 'middle';
-					const offset = textAlign === 'left' ? parseFloat(paddingInline) : textAlign === 'right' ? box.width - parseFloat(paddingInline) : box.width / 2;
-					ctx.fillText(el.textContent, box.left + offset, box.top + box.height / 2);
+					const totalWidth = segments.reduce((sum, seg) => { ctx.font = seg.font; return sum + ctx.measureText(seg.text).width; }, 0);
+					const startX = textAlign === 'left' ? box.left + parseFloat(paddingInline)
+						: textAlign === 'right' ? box.left + box.width - parseFloat(paddingInline) - totalWidth
+						: box.left + box.width / 2 - totalWidth / 2;
+					let x = startX;
+					for (const seg of segments) {
+						ctx.font = seg.font;
+						ctx.fillStyle = seg.color;
+						ctx.fillText(seg.text, x, box.top + box.height / 2);
+						x += ctx.measureText(seg.text).width;
+					}
 					return;
 				}
 			}

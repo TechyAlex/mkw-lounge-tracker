@@ -243,6 +243,14 @@ table.score td {
 	text-align: center;
 }
 
+table.score:not(.gap-table) {
+	table-layout: fixed;
+}
+
+table.score td.place {
+	white-space: nowrap;
+}
+
 table.score thead th {
 	background: #141414;
 	position: sticky;
