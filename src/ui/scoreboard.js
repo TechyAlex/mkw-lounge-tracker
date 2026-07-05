@@ -1,6 +1,6 @@
 /** @typedef {import("../mogi.js").Mogi} Mogi */
 
-import { fmt, t } from "../i18n/i18n.js";
+import { t } from "../i18n/i18n.js";
 import { RACE_COUNT } from "../mogi.js";
 import { ctx2d, toLetter } from "../util.js";
 import { openEditRace } from "./edit-race-dialog.js";
@@ -145,8 +145,15 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 				tdTeam.style.background = `${teamData?.colour || '#000000'}20`;
 			}
 			const tdName = document.createElement('td');
-			tdName.textContent = p.activePlayer.name;
 			tdName.classList.add('player', `rank-${playerRank}`);
+			tdName.append(p.activePlayer.name);
+			if (races.length > 0 && races.length < RACE_COUNT) {
+				const pace = Math.round(playerScore * RACE_COUNT / races.length);
+				const paceEl = document.createElement('span');
+				paceEl.className = 'race-delta muted';
+				paceEl.textContent = ` →${pace}`;
+				tdName.appendChild(paceEl);
+			}
 			tr.appendChild(tdName);
 
 			// Each race: show placement number; use '—' if not present
@@ -156,7 +163,7 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 				const row = r.placements.find(x => x.playerId === p.id);
 				const placement = row && !row.dc ? row.placement : null;
 				td.classList.add('place', `place-${placement ?? 0}`, `rank-${playerRank}`);
-				td.textContent = placement ? fmt.place(placement) : t('blank');
+				td.textContent = placement ? String(placement).padStart(2, ' ') : t('blank');
 				tr.appendChild(td);
 			}
 			for (let i = races.length; i < RACE_COUNT; i++) {
@@ -169,13 +176,6 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 			const tdTotal = document.createElement('td');
 			tdTotal.classList.add(`rank-${playerRank}`);
 			tdTotal.append(String(playerScore).padStart(3, '\u2007'));
-			if (races.length > 0 && races.length < RACE_COUNT) {
-				const pace = Math.round(playerScore * RACE_COUNT / races.length);
-				const paceEl = document.createElement('div');
-				paceEl.className = 'race-delta muted';
-				paceEl.textContent = `\u2192${pace}`;
-				tdTotal.appendChild(paceEl);
-			}
 			tr.appendChild(tdTotal);
 
 			if (mogi.playersPerTeam > 1 && team !== p.seed) {

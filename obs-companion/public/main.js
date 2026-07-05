@@ -1,7 +1,7 @@
 import { MogiData } from "./src/mogidata.js";
 
 const params = new URLSearchParams(location.search);
-/** @type {(data:MogiData)=>void} */
+/** @type {(data:MogiData|null)=>void} */
 const renderer = await (()=>new Promise(res=>{
 	import(`./src/ui/${params.get('theme') || 'vertical'}.js`)
 		.then(m => res(m.default))
@@ -22,6 +22,7 @@ sse.addEventListener('state', e=>{
 			notice.textContent = 'Waiting for Mogi data...';
 			document.body.append(notice);
 		}
+		renderer(null);
 	}
 	else {
 		pending?.remove();

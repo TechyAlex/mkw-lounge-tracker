@@ -32,12 +32,18 @@ const scoreTable = document.createElement('table');
 container.append(scoreTable);
 
 let isFirst = true;
-/** @param {MogiData} data */
+/** @param {MogiData|null} data */
 export default function update(data) {
 	if( isFirst) {
 		document.body.append(container);
 		isFirst = false;
 	}
+
+	if( !data) {
+		container.style.display = 'none';
+		return;
+	}
+	container.style.display = '';
 
 	const playersPerTeam = data.meta.playersPerTeam;
 	const roster = data.roster;

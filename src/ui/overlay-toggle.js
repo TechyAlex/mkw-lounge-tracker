@@ -26,6 +26,17 @@ function makeDialog() {
 const configKey = 'useOverlay';
 const bridge = 'http://localhost:52323/events';
 
+// When leaving the page (e.g. "New session", refresh, tab close) tell the bridge to go back to
+// its idle state, so the OBS overlay doesn't keep showing the previous session's last scoreboard
+// while the homescreen is up and no new Mogi exists yet.
+window.addEventListener('beforeunload', () => {
+	if( Config.get(configKey) !== 'on' || !navigator.sendBeacon) return;
+	// text/plain avoids a CORS preflight (application/json isn't CORS-safelisted) — the bridge
+	// doesn't check the content-type anyway, and a beacon fired during unload has no time to
+	// spare for a round trip it might not survive.
+	navigator.sendBeacon(bridge, new Blob([JSON.stringify({ status: 'waiting' })], { type: 'text/plain' }));
+});
+
 /**
  * @param {HTMLInputElement} toggle
  * @param {Mogi} mogi
