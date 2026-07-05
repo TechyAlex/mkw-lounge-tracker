@@ -168,7 +168,14 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 
 			const tdTotal = document.createElement('td');
 			tdTotal.classList.add(`rank-${playerRank}`);
-			tdTotal.textContent = String(playerScore).padStart(3, '\u2007');
+			tdTotal.append(String(playerScore).padStart(3, '\u2007'));
+			if (races.length > 0 && races.length < RACE_COUNT) {
+				const pace = Math.round(playerScore * RACE_COUNT / races.length);
+				const paceEl = document.createElement('div');
+				paceEl.className = 'race-delta muted';
+				paceEl.textContent = `\u2192${pace}`;
+				tdTotal.appendChild(paceEl);
+			}
 			tr.appendChild(tdTotal);
 
 			if (mogi.playersPerTeam > 1 && team !== p.seed) {
@@ -251,6 +258,11 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 		const mainRow = scoreTable.tBodies[0]?.rows[0];
 		const rowHeight = mainRow ? mainRow.getBoundingClientRect().height : 0;
 		for (const tr of gapTbody.rows) {
+			// Force each row to match the main table's row height exactly (a gap row's own
+			// content is usually shorter, e.g. one line vs. the main table's total+pace lines) —
+			// without this, rows stack using their own shorter natural height and the offset
+			// below drifts further off-boundary with each row.
+			tr.style.height = `${rowHeight}px`;
 			tr.style.position = 'relative';
 			tr.style.top = `${rowHeight / 2}px`;
 		}
