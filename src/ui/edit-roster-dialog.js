@@ -157,18 +157,9 @@ export function openEditRoster(mogi, video) {
 		});
 	}
 
-	container.addEventListener('click', e => {
-		const button = /** @type {HTMLElement} */(e.target).closest("button");
-		if (button && button.dataset.subPlayerId) {
-			const p = mogi.roster.byId(button.dataset.subPlayerId);
-			if (p) {
-				dialog.close();
-				openSubstitutePlayer(mogi, p);
-			}
-		}
-	});
-
-	save.addEventListener('click', () => {
+	// Persist all typed-in fields back into the model. Shared by the Save
+	// button and the sub buttons so entries aren't lost when navigating away.
+	function persistFields() {
 		const formFields = [...container.querySelectorAll('input'), ...container.querySelectorAll('select')];
 
 		// Edit roster
@@ -195,7 +186,22 @@ export function openEditRoster(mogi, video) {
 				}
 			});
 		}
+	}
 
+	container.addEventListener('click', e => {
+		const button = /** @type {HTMLElement} */(e.target).closest("button");
+		if (button && button.dataset.subPlayerId) {
+			const p = mogi.roster.byId(button.dataset.subPlayerId);
+			if (p) {
+				persistFields();
+				dialog.close();
+				openSubstitutePlayer(mogi, p);
+			}
+		}
+	});
+
+	save.addEventListener('click', () => {
+		persistFields();
 		dialog.close();
 		success(t('editRoster.rosterUpdated'));
 		mogi.triggerUpdate();

@@ -226,6 +226,7 @@ export function connectScoreboard(scoreTable, gapTable, video, mogi) {
 		for (let i = 0; i < RACE_COUNT; i++) {
 			const td = document.createElement('td');
 			const btn = document.createElement('button');
+			btn.classList.add('edit-race');
 			btn.textContent = "✏️";
 			if( i < races.length) {
 				btn.addEventListener('click', () => openEditRace(mogi, i));
