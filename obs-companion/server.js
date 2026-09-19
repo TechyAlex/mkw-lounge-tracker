@@ -117,6 +117,9 @@ server.on('request', (req, res) => {
 		const extension = path.extname(localfile);
 		res.statusCode = 200;
 		res.setHeader('Content-Type', MIME_TYPES[extension] ?? 'application/octet-stream');
+		// Don't let the browser (notably OBS's embedded CEF, which caches aggressively
+		// and rarely refreshes) serve a stale overlay page or theme after it's updated.
+		res.setHeader('Cache-Control', 'no-store');
 		res.end(fs.readFileSync(localfile));
 	}
 });
