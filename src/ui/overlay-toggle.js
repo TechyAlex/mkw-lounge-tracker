@@ -40,8 +40,28 @@ window.addEventListener('beforeunload', () => {
 /**
  * @param {HTMLInputElement} toggle
  * @param {Mogi} mogi
+ * @param {HTMLAnchorElement} [newSessionLink]
  */
-export function setupOverlay(toggle, mogi) {
+export function setupOverlay(toggle, mogi, newSessionLink) {
+	// Clicking "New session" reloads the page. The beforeunload beacon above is a
+	// best-effort fallback, but beacons fired during same-page navigation are
+	// unreliable — so clear the overlay explicitly here before navigating, using a
+	// keepalive fetch that survives the unload.
+	if( newSessionLink) {
+		let navigating = false;
+		newSessionLink.addEventListener('click', e => {
+			if( Config.get(configKey) !== 'on' || navigating) return;
+			e.preventDefault();
+			navigating = true;
+			let gone = false;
+			const go = () => { if( gone) return; gone = true; window.location.href = newSessionLink.href; };
+			fetch(bridge, { method: 'POST', body: JSON.stringify({ status: 'waiting' }), keepalive: true })
+				.then(go, go);
+			// Fallback so a hung/absent bridge never blocks starting a new session.
+			setTimeout(go, 500);
+		});
+	}
+
 	const sendData = () => new Promise((res,rej) => {
 		fetch(bridge, {method:"POST", body:JSON.stringify(mogi.export())})
 			.then(r => {

@@ -26,6 +26,7 @@ export class Player {
 
 	/** @type {string} */ #name;
 	get name() { return this.#name; }
+	set name(name) { this.#name = name; }
 
 	/** @type {number} */ #seed;
 	get seed() { return this.#seed; }

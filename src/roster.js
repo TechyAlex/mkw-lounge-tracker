@@ -59,9 +59,14 @@ export class Roster {
 
 		const warHeader = first?.match(/^WAR\s*-\s*(.+?)\s+vs\s+(.+)$/i);
 		if (warHeader) {
+			const WAR_TEAM_SIZE = 6;
 			const tags = [warHeader[1].trim(), warHeader[2].trim()];
 			const roster = new Roster('WAR');
 			roster.#isWar = true;
+			// Collect however many names the user knows per team. Unknown slots are
+			// padded with numbered placeholders so the roster can start straight away;
+			// the remaining members can be filled in via Edit roster before race 1.
+			const namesBySeed = /** @type {Map<number,string[]>} */(new Map());
 			const re = /^(\d+)\.\s+(.+)$/;
 			for (const line of lines) {
 				const m = re.exec(line);
@@ -69,10 +74,14 @@ export class Roster {
 				const seed = Number(m[1]);
 				if (seed < 1 || seed > 2) throw new Error(t('rosterSetup.badLine', { line }));
 				const names = String(m[2]).split(',').map(x => x.trim()).filter(Boolean);
-				if (names.length !== 6) throw new Error(t('rosterSetup.badLine', { line }));
-				for (let i = 0; i < names.length; i++) {
-					const player = new Player(`seed-${seed}-${i}`, names[i], seed, 0);
-					roster.add(player);
+				if (names.length > WAR_TEAM_SIZE) throw new Error(t('rosterSetup.badLine', { line }));
+				namesBySeed.set(seed, names);
+			}
+			for (let seed = 1; seed <= 2; seed++) {
+				const names = namesBySeed.get(seed) ?? [];
+				for (let i = 0; i < WAR_TEAM_SIZE; i++) {
+					const name = names[i] || `Player ${(seed - 1) * WAR_TEAM_SIZE + i + 1}`;
+					roster.add(new Player(`seed-${seed}-${i}`, name, seed, 0));
 				}
 			}
 			roster.#warTags = tags;

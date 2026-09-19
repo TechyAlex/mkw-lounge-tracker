@@ -84,10 +84,22 @@ function createHeaderRow(grid) {
 /**
  * @param {HTMLElement} grid
  * @param {Player} player
+ * @param {boolean} editableName whether the lounge name may be edited (war matches only)
  */
-function createPlayerRow(grid, player) {
-	const name = document.createElement('div');
-	name.textContent = player.name;
+function createPlayerRow(grid, player, editableName) {
+	/** @type {HTMLElement} */
+	let name;
+	if (editableName) {
+		name = document.createElement('input');
+		name.setAttribute('name', 'loungeName');
+		name.setAttribute('autocomplete', 'off');
+		name.dataset.playerId = player.id;
+		/** @type {HTMLInputElement} */(name).value = player.name;
+	}
+	else {
+		name = document.createElement('div');
+		name.textContent = player.name;
+	}
 
 	const input = document.createElement('input');
 	input.name = 'ign';
@@ -118,13 +130,17 @@ function createPlayerRow(grid, player) {
  */
 export function openEditRoster(mogi, video) {
 	const { dialog, container, save, cancel, autofill } = makeDialog();
-	
+
+	// Lounge names are only editable in war matches, so missing members can be
+	// filled in after setup but before the first race is captured.
+	const editableName = mogi.roster.isWar;
+
 	if (mogi.playersPerTeam === 1) {
 		const grid = createGridHost(container);
 		createHeaderRow(grid);
 		// Build player rows
 		for (const player of mogi.roster) {
-			createPlayerRow(grid, player);
+			createPlayerRow(grid, player, editableName);
 		}
 	}
 	else {
@@ -134,7 +150,7 @@ export function openEditRoster(mogi, video) {
 			createTeamRow(grid, team);
 			createHeaderRow(grid);
 			for (const player of team.players) {
-				createPlayerRow(grid, player);
+				createPlayerRow(grid, player, editableName);
 			}
 			grid.style.background = `linear-gradient(to bottom, ${TEAM_COLOURS[team.index]}80 16px, ${TEAM_COLOURS[team.index]}40 48px)`;
 		}
@@ -169,6 +185,8 @@ export function openEditRoster(mogi, video) {
 			if( player) {
 				switch( input.name) {
 					case 'ign': player.rawIgn = input.value; break;
+					// Keep the placeholder rather than wiping a name to empty.
+					case 'loungeName': if( input.value.trim()) player.name = input.value.trim(); break;
 				}
 			}
 		});

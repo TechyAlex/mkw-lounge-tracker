@@ -34,6 +34,7 @@ async function main() {
 	const snapshotButton = /** @type {HTMLButtonElement} */(document.getElementById('snapshotScores'));
 	const exportBtn = /** @type {HTMLButtonElement} */(document.getElementById('exportScores'));
 	const downloadBtn = /** @type {HTMLButtonElement} */(document.getElementById('downloadMogi'));
+	const newSessionLink = /** @type {HTMLAnchorElement} */(document.getElementById('newSession'));
 
 	const roster = await requestRoster(startButton);
 
@@ -44,7 +45,7 @@ async function main() {
 	setupCameraList(cameraSelect, video);
 	setupCaptureButton(captureBtn, video, outputOl, mogi);
 	setupAutoCapture(autoCaptureToggle, captureBtn, video, mogi);
-	setupOverlay(useOverlayToggle, mogi);
+	setupOverlay(useOverlayToggle, mogi, newSessionLink);
 	connectScoreboard(scoreTable, gapTable, video, mogi);
 	connectScoreboardScreenshotter(snapshotButton, scoreTable, gapTable);
 	connectExportButton(exportBtn, downloadBtn, mogi);
