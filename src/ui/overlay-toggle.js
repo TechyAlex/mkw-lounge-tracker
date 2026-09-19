@@ -50,11 +50,14 @@ export function setupOverlay(toggle, mogi, newSessionLink) {
 	if( newSessionLink) {
 		let navigating = false;
 		newSessionLink.addEventListener('click', e => {
-			if( Config.get(configKey) !== 'on' || navigating) return;
+			if( navigating) return;
 			e.preventDefault();
 			navigating = true;
 			let gone = false;
 			const go = () => { if( gone) return; gone = true; window.location.href = newSessionLink.href; };
+			// Always tell the bridge to go idle, regardless of the toggle: the OBS
+			// overlay may still be showing this session's last scoreboard even if the
+			// toggle is currently off, and a failed fetch (bridge down) is harmless.
 			fetch(bridge, { method: 'POST', body: JSON.stringify({ status: 'waiting' }), keepalive: true })
 				.then(go, go);
 			// Fallback so a hung/absent bridge never blocks starting a new session.
