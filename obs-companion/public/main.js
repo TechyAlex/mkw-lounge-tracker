@@ -14,18 +14,11 @@ const renderer = await (()=>new Promise(res=>{
 const sse = new EventSource('/events');
 sse.addEventListener('state', e=>{
 	const rawData = JSON.parse(e.data);
-	const pending = document.getElementById('waiting-for-mogi');
 	if( rawData.status === 'waiting') {
-		if( !pending) {
-			const notice = document.createElement('p');
-			notice.id = 'waiting-for-mogi';
-			notice.textContent = 'Waiting for Mogi data...';
-			document.body.append(notice);
-		}
+		// No data yet: let the theme clear itself, with nothing drawn over the stream.
 		renderer(null);
 	}
 	else {
-		pending?.remove();
 		const mogiData = MogiData.fromRaw(rawData);
 		renderer(mogiData);
 	}
