@@ -3,6 +3,7 @@
 
 /** @typedef {import("../mogi.js").Mogi} Mogi */
 
+import { info } from '../ui/toast.js';
 import { isDebugMode } from '../util.js';
 import { flushOutbox } from './outbox.js';
 import { SETTINGS_CHANGED_EVENT, statsSettings } from './settings.js';
@@ -35,7 +36,7 @@ export function setupStatsSettings() {
 
 /**
  * Wire the stats export into a running mogi: a "Stats" button next to the export buttons,
- * and the automatic finish flow (self pick → track labeling → send) after the last race.
+ * which starts the finish flow (self pick → track labeling → send) once the mogi has ended.
  * @param {Mogi} mogi
  */
 export function connectStatsExport(mogi) {
@@ -58,13 +59,14 @@ export function connectStatsExport(mogi) {
 	};
 	window.addEventListener(SETTINGS_CHANGED_EVENT, refresh);
 
+	// Nothing opens by itself when the mogi ends (so the Lounge table can be copied first);
+	// the finish flow starts only from the Stats button. Just point at it once.
 	mogi.addEventListener('update', () => {
 		refresh();
-		if (!mogi.ended) { session.autoFlowDone = false; return; }
-		if (session.autoFlowDone || !statsSettings.featureEnabled) return;
-		session.autoFlowDone = true;
-		// Let the "Race 12 saved" UI settle before opening the finish flow.
-		setTimeout(() => runFinishFlow(session, { auto: true }), 400);
+		if (!mogi.ended) { session.endHintShown = false; return; }
+		if (session.endHintShown || session.sent || !statsSettings.featureEnabled) return;
+		session.endHintShown = true;
+		setTimeout(() => info('Mogi finished — click 📊 Stats when you\'re ready to label tracks and send stats.', { timeout: 6000 }), 400);
 	});
 	refresh();
 

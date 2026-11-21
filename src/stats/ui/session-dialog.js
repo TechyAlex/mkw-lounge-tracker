@@ -37,11 +37,11 @@ export async function sendSession(session, tracks) {
 }
 
 /**
- * The full Finish flow: pick self → label tracks → summary (auto-sends when a server is configured).
+ * The full Finish flow, started from the Stats button: pick self → label tracks → summary
+ * (sends automatically when a server is configured and this mogi hasn't been sent yet).
  * @param {StatsSession} session
- * @param {{auto?: boolean}} [opts] auto = triggered by the mogi ending
  */
-export async function runFinishFlow(session, opts = {}) {
+export async function runFinishFlow(session) {
 	if (!session.selfPlayer) {
 		const name = await pickSelf(session.mogi, session.selfName);
 		if (!name) return;
@@ -54,7 +54,7 @@ export async function runFinishFlow(session, opts = {}) {
 		if (!done) return;
 		justLabeled = true;
 	}
-	await openSessionDialog(session, { autoSend: !!opts.auto || justLabeled });
+	await openSessionDialog(session, { autoSend: justLabeled || (!session.sent && !session.lastResult) });
 }
 
 /**

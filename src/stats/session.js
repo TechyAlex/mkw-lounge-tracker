@@ -34,8 +34,8 @@ export class StatsSession {
 	lastResult = null;
 	/** Has the server accepted this session at least once? */
 	sent = false;
-	/** Has the automatic finish flow already run for this mogi? */
-	autoFlowDone = false;
+	/** Has the "click Stats" hint been shown since the mogi ended? */
+	endHintShown = false;
 
 	/** @param {Mogi} mogi */
 	constructor(mogi) {

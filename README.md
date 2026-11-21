@@ -95,13 +95,13 @@ This fork can label which track each race was on and export a mogi as JSON for a
 
 Wars (`WAR - Tag1 vs Tag2` rosters) are never labeled or sent.
 
-**After race 12** the app asks which player you are (remembered for next time), then shows each race's results screenshot one at a time and asks **"What track is this?"**:
+**After race 12**, nothing interrupts you: copy the Lounge table as usual. When you're ready, click **📊 Stats** (next to *Export scores*). The app asks which player you are (remembered for next time), then shows each race's results screenshot one at a time and asks **"What track is this?"**:
 
 * Type the abbreviation (case-insensitive), e.g. `bc` → Bowser's Castle, `rgv1` → Ghost Valley 1 (retro). Suggestions appear as you type; **↑/↓** picks one, **Tab** completes.
 * **Enter** accepts and moves on, **Shift+Enter** goes back, **?** marks the track as unknown.
 * **Connecting tracks**: type `FROM>TO` (e.g. `mbc>cc`) or press **↪ Connecting**. Either side can be `?`.
 
-The mogi is then sent to the server ("Sent ✓ — waiting for the Lounge table" is the normal result). If the server can't be reached, the upload is kept in a local outbox and retried later. **💾 Download session JSON** is always available, and the **📊 Stats** button (next to *Export scores*) reopens all of this to fix labels or re-send. Screenshots are never uploaded.
+The mogi is then sent to the server ("Sent ✓ — waiting for the Lounge table" is the normal result). If the server can't be reached, the upload is kept in a local outbox and retried later. **💾 Download session JSON** is always available, and clicking **📊 Stats** again lets you fix labels or re-send. Screenshots are never uploaded.
 
 **Export format notes** (`schemaVersion: 1`):
 
