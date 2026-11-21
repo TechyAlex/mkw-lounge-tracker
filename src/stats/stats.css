@@ -1,0 +1,229 @@
+/* Opt-in stats export (src/stats). Reuses the app's dialog/.modal/button styles. */
+
+.stats-settings-btn {
+	padding: 0;
+	font-size: 15px;
+	line-height: 1;
+}
+
+.stats-modal {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	max-width: min(92vw, 720px);
+}
+
+.stats-modal input[type=text],
+.stats-modal input[type=url],
+.stats-modal input[type=password] {
+	background: #0b0b0b;
+	color: #e5e5e5;
+	border: 1px solid #333;
+	border-radius: 8px;
+	padding: 8px 10px;
+	font: inherit;
+	min-width: 0;
+}
+
+.stats-modal footer {
+	align-items: center;
+}
+
+.stats-error {
+	color: #ff8a80;
+}
+
+.stats-link {
+	background: none;
+	border: 0;
+	padding: 0 4px;
+	color: #8ab4f8;
+	text-decoration: underline;
+	border-radius: 4px;
+}
+
+/* Settings */
+.stats-field {
+	display: grid;
+	grid-template-columns: 160px 1fr;
+	gap: 8px;
+	align-items: center;
+}
+
+.stats-inline {
+	flex-wrap: nowrap;
+	gap: 8px;
+}
+
+.stats-inline input {
+	flex: 1 1 auto;
+}
+
+.stats-check {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.stats-outbox:empty {
+	display: none;
+}
+
+.stats-outbox {
+	background: #1a1608;
+	border: 1px solid #5b451a;
+	border-radius: 8px;
+	padding: 8px;
+}
+
+/* Self picker */
+.stats-self-list {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px;
+}
+
+.stats-self-list label {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	background: #1f1f1f;
+	border: 1px solid #2b2b2b;
+	border-radius: 8px;
+	padding: 6px 8px;
+	cursor: pointer;
+}
+
+.stats-self-list label:has(input:checked) {
+	outline: 2px solid #1f5e2a;
+	background: #0f2a14;
+}
+
+/* Track labeler */
+.stats-labeler-dialog {
+	width: min(96vw, 1200px);
+}
+
+.stats-labeler.stats-modal {
+	max-width: none;
+	min-width: 0;
+}
+
+.stats-labeler-head h3 {
+	margin: 0;
+}
+
+.stats-progress {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+
+.stats-chip {
+	min-width: 34px;
+	padding: 2px 6px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	color: #9aa0a6;
+}
+
+.stats-chip.is-done {
+	color: #eaffea;
+	border-color: #1f5e2a;
+	background: #0f2a14;
+}
+
+.stats-chip.is-current {
+	outline: 2px solid #8ab4f8;
+}
+
+.stats-shot img {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: 62vh;
+	object-fit: contain;
+	border-radius: 8px;
+	border: 1px solid #333;
+	background: #151515;
+}
+
+.stats-track-input {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.stats-track-input input {
+	flex: 1 1 auto;
+	font-size: 20px !important;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+
+.stats-resolved {
+	min-height: 1.4em;
+	font-size: 15px;
+}
+
+.stats-suggestions {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.stats-suggestions:empty {
+	display: none;
+}
+
+.stats-suggestions li {
+	background: #1f1f1f;
+	border: 1px solid #2b2b2b;
+	border-radius: 8px;
+	padding: 4px 8px;
+	cursor: pointer;
+}
+
+.stats-suggestions li.is-active,
+.stats-suggestions li:hover {
+	background: #0e1a2a;
+	outline: 2px solid #2a3a55;
+}
+
+.stats-hint {
+	font-size: 12px;
+	margin: 0;
+}
+
+/* Session summary */
+.stats-races-wrap {
+	max-height: 50vh;
+	overflow: auto;
+}
+
+table.stats-races {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+table.stats-races th,
+table.stats-races td {
+	text-align: left;
+	padding: 3px 8px;
+	border-bottom: 1px solid #1f1f1f;
+}
+
+.stats-status {
+	margin: 0;
+	flex: 1 1 auto;
+}
+
+.stats-status.is-ok {
+	color: #a5d6a7;
+}

@@ -9,6 +9,7 @@ import { setupDebugOcrButton } from "./src/ui/ocr-debug-dialog.js";
 import { setupOverlay } from "./src/ui/overlay-toggle.js";
 import { connectScoreboard, connectScoreboardScreenshotter } from "./src/ui/scoreboard.js";
 import { requestRoster } from "./src/ui/set-roster-dialog.js";
+import { connectStatsExport, setupStatsSettings } from "./src/stats/index.js";
 import { isDebugMode } from "./src/util.js";
 
 async function main() {
@@ -19,6 +20,7 @@ async function main() {
 
 	setupLocaleSwitcher(localeSelect);
 	initI18n();
+	setupStatsSettings();
 
 	const startButton = /** @type {HTMLButtonElement} */(document.getElementById('start'));
 
@@ -50,6 +52,7 @@ async function main() {
 	connectScoreboardScreenshotter(snapshotButton, scoreTable, gapTable);
 	connectExportButton(exportBtn, downloadBtn, mogi);
 	connectGallery(raceGallery, mogi);
+	connectStatsExport(mogi);
 
 	if( isDebugMode() ) setupDebugOcrButton();
 }

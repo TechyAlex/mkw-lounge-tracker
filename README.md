@@ -81,6 +81,36 @@ For detailed instructions, see below.
 
 ![Lounge export](./img/docs/6-export-scores.jpg)
 
+## Optional: Track Labeling & Stats Server
+
+This fork can label which track each race was on and export a mogi as JSON for a self-hosted **MKW Advanced Stats** server. It is **off unless you turn it on**: with no stats server configured (and track labeling off), the app works exactly as before and sends nothing anywhere.
+
+**Setup** – click **📊** in the header:
+
+* **Server URL** – your stats server (must be `https://`). Leave empty to turn sending off.
+* **Upload token** – stored only in this browser (`localStorage`), never in the repo or the export.
+* **Your Lounge player ID** – optional; lets the server follow you across name changes.
+* **Label tracks after each mogi** – on by default when a server is set; can be turned on without a server too.
+* **Test connection** checks the token and downloads the server's track list.
+
+Wars (`WAR - Tag1 vs Tag2` rosters) are never labeled or sent.
+
+**After race 12** the app asks which player you are (remembered for next time), then shows each race's results screenshot one at a time and asks **"What track is this?"**:
+
+* Type the abbreviation (case-insensitive), e.g. `bc` → Bowser's Castle, `rgv1` → Ghost Valley 1 (retro). Suggestions appear as you type; **↑/↓** picks one, **Tab** completes.
+* **Enter** accepts and moves on, **Shift+Enter** goes back, **?** marks the track as unknown.
+* **Connecting tracks**: type `FROM>TO` (e.g. `mbc>cc`) or press **↪ Connecting**. Either side can be `?`.
+
+The mogi is then sent to the server ("Sent ✓ — waiting for the Lounge table" is the normal result). If the server can't be reached, the upload is kept in a local outbox and retried later. **💾 Download session JSON** is always available, and the **📊 Stats** button (next to *Export scores*) reopens all of this to fix labels or re-send. Screenshots are never uploaded.
+
+**Export format notes** (`schemaVersion: 1`):
+
+* The track list comes from the server (`GET /api/tracks`), with [`src/stats/tracks.json`](./src/stats/tracks.json) as the bundled fallback. Abbreviations are sent uppercase.
+* A connecting track is sent as `track.abbr` = destination, `track.from` = origin (or `null` if unknown) and `track.routeType` = `"connecting"`. Normal tracks have `from: null, routeType: null`.
+* Race numbers are 1–12 in counted order. Results use the roster's Lounge names, and `status` is `ok` or `dc`.
+
+The code for this feature lives in [`src/stats/`](./src/stats/).
+
 ## Fixing Problems
 
 Sometimes the app might not read everything perfectly. Here's what you can do:

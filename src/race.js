@@ -68,20 +68,26 @@ export class Race {
 	/** @type {string} */ #snapshotUrl;
 	get snapshotUrl() { return this.#snapshotUrl; }
 
+	/** True once the user has corrected this race's OCR result. */
+	/** @type {boolean} */ #edited;
+	get edited() { return this.#edited; }
+
 	/**
 	 * @param {number} timestamp
 	 * @param {Placement[]} placements
 	 * @param {string} snapshotUrl
+	 * @param {boolean} [edited]
 	 */
-	constructor(timestamp, placements, snapshotUrl) {
+	constructor(timestamp, placements, snapshotUrl, edited = false) {
 		this.#timestamp = timestamp;
 		this.#placements = placements;
 		this.#snapshotUrl = snapshotUrl;
+		this.#edited = edited;
 	}
 
 	/** @param {Placement[]} placements */
 	withPlacements(placements) {
-		return new Race(this.#timestamp, placements, this.#snapshotUrl);
+		return new Race(this.#timestamp, placements, this.#snapshotUrl, true);
 	}
 
 	/** @returns {Map<string,number>} Player ID => Score */
