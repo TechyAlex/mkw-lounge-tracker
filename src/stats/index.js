@@ -5,10 +5,12 @@
 
 import { info } from '../ui/toast.js';
 import { isDebugMode } from '../util.js';
+import { TrackRecognizer } from './auto-tracks.js';
 import { flushOutbox } from './outbox.js';
 import { SETTINGS_CHANGED_EVENT, statsSettings } from './settings.js';
 import { StatsSession } from './session.js';
 import { el } from './ui/dom.js';
+import { createLivePanel } from './ui/live-panel.js';
 import { runFinishFlow } from './ui/session-dialog.js';
 import { openStatsSettings } from './ui/settings-dialog.js';
 
@@ -53,11 +55,24 @@ export function connectStatsExport(mogi) {
 	document.getElementById('exportScores')?.before(btn);
 	btn.addEventListener('click', () => runFinishFlow(session));
 
+	// Live track recognition + next-track picks (only while linked to a stats server).
+	const recognizer = new TrackRecognizer(session);
+	const live = createLivePanel(session, recognizer);
+	const history = document.getElementById('raceGallery')?.closest('section');
+	if (history) history.before(live.element); else document.getElementById('step2')?.append(live.element);
+
 	const refresh = () => {
 		btn.hidden = !statsSettings.featureEnabled;
 		btn.disabled = !mogi.ended;
+		if (statsSettings.liveEnabled) { recognizer.start(); recognizer.update(); }
+		live.refresh();
 	};
-	window.addEventListener(SETTINGS_CHANGED_EVENT, refresh);
+	let linkedTo = statsSettings.liveEnabled ? statsSettings.serverUrl + statsSettings.token : '';
+	window.addEventListener(SETTINGS_CHANGED_EVENT, () => {
+		const now = statsSettings.liveEnabled ? statsSettings.serverUrl + statsSettings.token : '';
+		if (now !== linkedTo) { linkedTo = now; recognizer.reset(); live.reloadPicks(); }
+		refresh();
+	});
 
 	// Nothing opens by itself when the mogi ends (so the Lounge table can be copied first);
 	// the finish flow starts only from the Stats button. Just point at it once.
@@ -70,6 +85,6 @@ export function connectStatsExport(mogi) {
 	});
 	refresh();
 
-	if (isDebugMode()) Object.assign(window, { mmStats: { mogi, session } });
+	if (isDebugMode()) Object.assign(window, { mmStats: { mogi, session, recognizer } });
 	return session;
 }

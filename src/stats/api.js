@@ -160,3 +160,29 @@ export async function fetchTracks(server) {
 	if (!res.ok) throw new Error(`HTTP ${res.status}`);
 	return res.json();
 }
+
+/**
+ * Labelled track fingerprints for in-browser track recognition (upload token).
+ * @param {string|null} [since] Version already cached; the server answers {unchanged:true} if it still matches
+ * @returns {Promise<{version:string, count:number, unchanged?:true, examples?:{track:string, p:string, e:string|null}[]}>}
+ */
+export async function fetchTrackExamples(since) {
+	const q = since ? `?since=${encodeURIComponent(since)}` : '';
+	const res = await request(`/api/import/track-examples${q}`, {}, {});
+	if (res.status === 401) throw new Error('Upload token rejected');
+	if (res.status === 404) throw new Error('This stats server is too old for track recognition (update it)');
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	return res.json();
+}
+
+/**
+ * The "Pick a track for your start position" ranking (public).
+ * @param {number|null} [playerId]
+ * @returns {Promise<any>} { races, byStart[], picks: {[start]: [{abbr, code, name, edge, n, avgPoints, avgFinish, …}]} }
+ */
+export async function fetchStartPicks(playerId) {
+	const q = playerId ? `?player=${playerId}` : '';
+	const res = await request(`/api/stats/start-positions${q}`, {}, { auth: false });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	return res.json();
+}

@@ -18,6 +18,8 @@ export function openStatsSettings() {
 	const labeling = el('input', { type: 'checkbox' });
 	labeling.checked = statsSettings.labelingEnabled;
 	const labelingHint = el('span', { class: 'muted' });
+	const live = el('input', { type: 'checkbox' });
+	live.checked = statsSettings.liveSetting !== 'off';
 	const testBtn = el('button', { type: 'button' }, 'Test connection');
 	const testOut = el('p', { class: 'muted stats-test-output' });
 	const errorOut = el('p', { class: 'stats-error', hidden: true });
@@ -100,6 +102,8 @@ export function openStatsSettings() {
 		el('label', { class: 'stats-field' }, el('span', {}, 'Upload token'), el('span', { class: 'row stats-inline' }, token, toggleToken)),
 		el('label', { class: 'stats-field' }, el('span', {}, 'Your Lounge player ID'), playerId),
 		el('label', { class: 'stats-check' }, labeling, el('span', {}, 'Label tracks after each mogi'), labelingHint),
+		el('label', { class: 'stats-check' }, live, el('span', {}, 'Recognise each race\'s track and suggest the next track'),
+			el('span', { class: 'muted' }, '(needs the server; loads a ~14 MB image model once)')),
 		el('div', { class: 'row' }, testBtn),
 		testOut,
 		outboxOut,
@@ -129,6 +133,7 @@ export function openStatsSettings() {
 		statsSettings.selfPlayerId = pid ? Number(pid) : null;
 		// Only store an explicit labeling choice once the user has made one.
 		if (labelingTouched) statsSettings.labelingSetting = labeling.checked ? 'on' : 'off';
+		statsSettings.liveSetting = live.checked ? 'on' : 'off';
 		if (serverChanged) statsSettings.tracksCache = '';
 		notifySettingsChanged();
 		success('Stats settings saved');

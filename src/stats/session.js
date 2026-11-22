@@ -23,11 +23,18 @@ function uuidv4() {
 	return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-export class StatsSession {
+/** Fired on a StatsSession whenever a race's track label or guesses change. */
+export const LABELS_CHANGED_EVENT = 'labels';
+
+export class StatsSession extends EventTarget {
 	/** Stable for this mogi; re-sends upsert on the server. */
 	sessionId = uuidv4();
 	/** @type {Map<number, string>} race timestamp => track abbr ("?" = unknown) */
 	labels = new Map();
+	/** @type {Set<number>} races whose label the user set (never overwritten by recognition) */
+	manual = new Set();
+	/** @type {Map<number, string[]>} race timestamp => recognised tracks, best first */
+	guesses = new Map();
 	/** @type {string|null} Lounge name of the user, chosen from the roster */
 	selfName = null;
 	/** @type {SendResult|null} */
@@ -39,6 +46,7 @@ export class StatsSession {
 
 	/** @param {Mogi} mogi */
 	constructor(mogi) {
+		super();
 		this.mogi = mogi;
 	}
 
@@ -52,7 +60,28 @@ export class StatsSession {
 	 * @param {Race} race
 	 * @param {string} abbr
 	 */
-	setLabel(race, abbr) { this.labels.set(race.timestamp, abbr); }
+	setLabel(race, abbr) {
+		this.labels.set(race.timestamp, abbr);
+		this.manual.add(race.timestamp);
+		this.dispatchEvent(new Event(LABELS_CHANGED_EVENT));
+	}
+
+	/**
+	 * Store recognised tracks for a race; the best one becomes its label unless the user set one.
+	 * @param {Race} race
+	 * @param {string[]} guesses best first
+	 */
+	setGuesses(race, guesses) {
+		this.guesses.set(race.timestamp, guesses);
+		if (!this.manual.has(race.timestamp) && guesses.length) this.labels.set(race.timestamp, guesses[0]);
+		this.dispatchEvent(new Event(LABELS_CHANGED_EVENT));
+	}
+
+	/** @param {Race} race */
+	guessesOf(race) { return this.guesses.get(race.timestamp) ?? []; }
+
+	/** Label came from recognition and the user hasn't touched it. @param {Race} race */
+	isAutoLabel(race) { return this.labels.has(race.timestamp) && !this.manual.has(race.timestamp); }
 
 	get labeledCount() { return this.races.filter(r => this.labels.has(r.timestamp)).length; }
 

@@ -5,6 +5,7 @@ export const KEYS = {
 	serverUrl: 'mm.stats.serverUrl',
 	token: 'mm.stats.token',
 	labeling: 'mm.stats.labeling', // 'on' | 'off' | unset (default: on iff a server is configured)
+	live: 'mm.stats.live', // 'off' turns off live track recognition + next-track picks (default on with a server)
 	tracksCache: 'mm.stats.tracksCache',
 	selfName: 'mm.self.loungeName',
 	selfPlayerId: 'mm.self.loungePlayerId',
@@ -69,6 +70,12 @@ export const statsSettings = {
 		if (v) return v === 'on';
 		return this.serverConfigured;
 	},
+
+	get liveSetting() { return get(KEYS.live) === 'off' ? 'off' : 'on'; },
+	set liveSetting(v) { set(KEYS.live, v === 'off' ? 'off' : ''); },
+
+	/** Live track recognition and next-track picks: only when linked to a stats server. */
+	get liveEnabled() { return this.serverConfigured && this.token !== '' && this.liveSetting !== 'off'; },
 
 	/** Show the stats features at all (button on the scoreboard, finish flow). */
 	get featureEnabled() { return this.serverConfigured || this.labelingEnabled; },

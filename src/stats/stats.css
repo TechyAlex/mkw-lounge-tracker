@@ -227,3 +227,155 @@ table.stats-races td {
 .stats-status.is-ok {
 	color: #a5d6a7;
 }
+
+/* Recognised-track guesses (live panel + labeler) */
+.stats-tag {
+	font-size: 11px;
+	padding: 1px 6px;
+	margin-left: 6px;
+	border-radius: 999px;
+	background: #1d2b3a;
+	color: #8ab4f8;
+	vertical-align: middle;
+}
+
+.stats-tag.is-manual {
+	background: #1f2e1f;
+	color: #9ccc65;
+}
+
+.stats-guess {
+	padding: 3px 9px;
+	border-radius: 999px;
+	font-size: 13px;
+}
+
+.stats-guess.is-on {
+	border-color: #8ab4f8;
+	background: #13202e;
+}
+
+.stats-guesses {
+	gap: 6px;
+}
+
+/* Live panel: next track + recognised tracks */
+.stats-live {
+	max-width: 1100px;
+	margin: 16px auto;
+}
+
+.stats-live-head {
+	margin-top: 14px;
+}
+
+.stats-live-head h2 {
+	margin: 0;
+}
+
+.stats-next p {
+	margin: 4px 0;
+}
+
+.stats-next .small {
+	font-size: 12px;
+}
+
+.stats-picks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 8px 0;
+}
+
+.stats-picks-label {
+	width: 48px;
+	font-weight: 600;
+}
+
+.stats-pick {
+	display: flex;
+	gap: 6px;
+	align-items: baseline;
+	padding: 6px 10px;
+	border: 1px solid #333;
+	border-radius: 10px;
+	background: #111;
+}
+
+.stats-pick.is-good { border-color: #2e5e2e; }
+.stats-pick.is-bad { border-color: #6b2b2b; }
+.stats-pick.is-thin { opacity: .6; }
+
+.stats-pick-name {
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.stats-pick-edge {
+	font-weight: 700;
+}
+
+.stats-pick.is-good .stats-pick-edge { color: #9ccc65; }
+.stats-pick.is-bad .stats-pick-edge { color: #ff8a80; }
+
+.stats-pick-played {
+	color: #ffcc80;
+}
+
+.stats-live-races {
+	list-style: none;
+	margin: 8px 0 0;
+	padding: 0;
+	display: grid;
+	gap: 6px;
+}
+
+.stats-live-race {
+	display: grid;
+	grid-template-columns: 34px 96px minmax(180px, 1fr) auto;
+	gap: 10px;
+	align-items: center;
+	padding: 4px 6px;
+	border-radius: 8px;
+	background: #0f0f0f;
+}
+
+.stats-live-thumb img {
+	display: block;
+	width: 96px;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+	border-radius: 4px;
+}
+
+.stats-live-swaps {
+	gap: 6px;
+	justify-content: flex-end;
+}
+
+.stats-live-swaps input {
+	background: #0b0b0b;
+	color: #e5e5e5;
+	border: 1px solid #333;
+	border-radius: 999px;
+	padding: 3px 9px;
+	font: inherit;
+	font-size: 13px;
+	text-transform: uppercase;
+}
+
+.stats-live-swaps input {
+	width: 84px;
+}
+
+.stats-live-swaps input::placeholder {
+	text-transform: none;
+}
+
+.stats-live-swaps input.stats-error {
+	border-color: #ff8a80;
+}

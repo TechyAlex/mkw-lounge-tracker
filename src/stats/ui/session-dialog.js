@@ -105,7 +105,8 @@ export async function openSessionDialog(session, opts = {}) {
 				});
 				return el('tr', {},
 					el('td', {}, String(i + 1)),
-					el('td', { class: label ? '' : 'muted' }, label ? `${label} · ${tracks.describeLabel(label)}` : '—'),
+					el('td', { class: label ? '' : 'muted' }, label ? `${label} · ${tracks.describeLabel(label)}` : '—',
+						session.isAutoLabel(race) ? el('span', { class: 'stats-tag', title: 'Recognised automatically' }, 'auto') : null),
 					el('td', {}, r ? (r.dc ? 'DC' : fmt.place(r.placement).trim()) : '—'),
 					el('td', {}, r ? `+${r.points}` : '—'),
 					el('td', {}, edit),

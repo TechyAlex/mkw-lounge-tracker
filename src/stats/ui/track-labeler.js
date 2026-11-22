@@ -38,6 +38,7 @@ export function labelTracks(session, tracks, startIndex) {
 			role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', 'aria-controls': 'stats-track-suggestions',
 		});
 		const resolved = el('div', { class: 'stats-resolved', 'aria-live': 'polite' });
+		const guessRow = el('div', { class: 'row stats-guesses' });
 		const suggestions = el('ul', { class: 'stats-suggestions', id: 'stats-track-suggestions', role: 'listbox' });
 		const back = el('button', { type: 'button' }, '← Back');
 		const skip = el('button', { type: 'button' }, 'Unknown (?)');
@@ -49,10 +50,11 @@ export function labelTracks(session, tracks, startIndex) {
 			el('div', { class: 'row stats-labeler-head' }, title, context, el('ins', { class: 'spacer' }), progress),
 			el('div', { class: 'stats-shot' }, img),
 			el('label', { class: 'stats-track-input' }, el('span', {}, 'What track is this?'), input),
+			guessRow,
 			resolved,
 			suggestions,
 			el('p', { class: 'muted stats-hint' },
-				'Enter = accept & next · Shift+Enter = back · ↑/↓ = pick a suggestion · Tab = complete · ? = unknown · FROM>TO = connecting track (e.g. MBC>CC) · Esc = close'),
+				'Enter = accept & next · Alt+1/2/3 = recognised guess · Shift+Enter = back · ↑/↓ = pick a suggestion · Tab = complete · ? = unknown · FROM>TO = connecting track (e.g. MBC>CC) · Esc = close'),
 			el('footer', {}, close, el('ins', { class: 'spacer' }), back, connecting, skip, next),
 		);
 		const dialog = el('dialog', { class: 'stats-labeler-dialog' }, form);
@@ -137,6 +139,15 @@ export function labelTracks(session, tracks, startIndex) {
 			img.src = race.snapshotUrl || PLACEHOLDER_IMG;
 			img.alt = `Race ${idx + 1} results screen`;
 			input.value = session.labelOf(race) ?? '';
+			const guesses = session.guessesOf(race);
+			guessRow.replaceChildren(...(guesses.length ? [el('span', { class: 'muted' }, session.isAutoLabel(race) ? 'Recognised:' : 'Guesses:')] : []),
+				...guesses.map((g, gi) => {
+					const t = tracks.byAbbr(g);
+					const b = el('button', { type: 'button', class: `stats-guess${g === input.value ? ' is-on' : ''}`, tabindex: '-1', title: `Alt+${gi + 1}` },
+						el('small', { class: 'muted' }, String(gi + 1)), ' ', el('strong', { class: 'mono' }, g), ' ', t ? trackLabel(t) : '');
+					b.addEventListener('click', () => accept(g));
+					return b;
+				}));
 			highlighted = -1;
 			next.textContent = idx === races.length - 1 ? 'Finish ✓' : 'Next →';
 			back.disabled = idx === 0;
@@ -179,7 +190,12 @@ export function labelTracks(session, tracks, startIndex) {
 
 		input.addEventListener('input', () => { highlighted = -1; update(); });
 		input.addEventListener('keydown', e => {
-			if (e.key === 'Enter') {
+			const guessKey = e.altKey && /^Digit[1-3]$/.test(e.code) ? Number(e.code.slice(5)) - 1 : -1;
+			if (guessKey >= 0) {
+				e.preventDefault();
+				const g = session.guessesOf(races[idx])[guessKey];
+				if (g) accept(g);
+			} else if (e.key === 'Enter') {
 				e.preventDefault();
 				if (e.shiftKey) { if (idx > 0) go(idx - 1); }
 				else tryAccept();
