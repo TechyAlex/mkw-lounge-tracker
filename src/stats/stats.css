@@ -322,10 +322,6 @@ table.stats-races td {
 .stats-pick.is-good .stats-pick-edge { color: #9ccc65; }
 .stats-pick.is-bad .stats-pick-edge { color: #ff8a80; }
 
-.stats-pick-played {
-	color: #ffcc80;
-}
-
 .stats-live-races {
 	list-style: none;
 	margin: 8px 0 0;

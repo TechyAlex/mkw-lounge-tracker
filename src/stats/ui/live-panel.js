@@ -109,9 +109,10 @@ export function createLivePanel(session, recognizer) {
 		const st = startPicks.byStart?.[start - 1];
 		const listForStart = /** @type {any[]} */(startPicks.picks?.[start] ?? []);
 		const played = new Set(races.map(r => splitLabel(session.labelOf(r) ?? UNKNOWN_ABBR).abbr));
-		// Picks skip tracks already raced this mogi (the next best fill in); Avoid keeps them.
-		const best = listForStart.filter(t => t.edge > 0 && !played.has(t.abbr)).slice(0, PICKS_SHOWN);
-		const worst = listForStart.filter(t => t.edge < 0).slice(-AVOID_SHOWN).reverse();
+		// Tracks already raced this mogi are left out entirely; the next best/worst fill in.
+		const open = listForStart.filter(t => !played.has(t.abbr));
+		const best = open.filter(t => t.edge > 0).slice(0, PICKS_SHOWN);
+		const worst = open.filter(t => t.edge < 0).slice(-AVOID_SHOWN).reverse();
 
 		/** @param {any} t @param {'good'|'bad'} kind */
 		const card = (t, kind) => el('div', {
@@ -122,7 +123,6 @@ export function createLivePanel(session, recognizer) {
 			el('span', { class: 'stats-pick-name' }, t.name),
 			el('span', { class: 'stats-pick-edge' }, signed(t.edge)),
 			el('small', { class: 'muted' }, `n ${t.n}`),
-			played.has(t.abbr) ? el('small', { class: 'stats-pick-played' }, 'played') : null,
 		);
 		nextBody.replaceChildren(
 			intro,
