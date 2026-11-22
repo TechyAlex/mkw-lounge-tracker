@@ -151,6 +151,7 @@ export function createLivePanel(session, recognizer) {
 		const focused = /** @type {HTMLInputElement|null} */(document.activeElement);
 		const focusedIdx = focused?.dataset?.statsRace;
 		const typing = focusedIdx != null ? focused?.value ?? '' : '';
+		// Newest race first, so the latest track sits right under the scoreboard.
 		list.replaceChildren(...races.map((race, i) => {
 			const label = session.labelOf(race);
 			const guesses = session.guessesOf(race);
@@ -201,7 +202,7 @@ export function createLivePanel(session, recognizer) {
 				current,
 				el('span', { class: 'row stats-live-swaps' }, ...swaps, input),
 			);
-		}));
+		}).reverse());
 		if (focusedIdx != null) {
 			const again = /** @type {HTMLInputElement|null} */(list.querySelector(`[data-stats-race="${focusedIdx}"]`));
 			if (again) { again.value = typing; again.focus(); }
