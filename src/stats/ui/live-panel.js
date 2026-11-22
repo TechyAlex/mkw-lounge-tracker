@@ -108,9 +108,10 @@ export function createLivePanel(session, recognizer) {
 
 		const st = startPicks.byStart?.[start - 1];
 		const listForStart = /** @type {any[]} */(startPicks.picks?.[start] ?? []);
-		const best = listForStart.filter(t => t.edge > 0).slice(0, PICKS_SHOWN);
-		const worst = listForStart.filter(t => t.edge < 0).slice(-AVOID_SHOWN).reverse();
 		const played = new Set(races.map(r => splitLabel(session.labelOf(r) ?? UNKNOWN_ABBR).abbr));
+		// Picks skip tracks already raced this mogi (the next best fill in); Avoid keeps them.
+		const best = listForStart.filter(t => t.edge > 0 && !played.has(t.abbr)).slice(0, PICKS_SHOWN);
+		const worst = listForStart.filter(t => t.edge < 0).slice(-AVOID_SHOWN).reverse();
 
 		/** @param {any} t @param {'good'|'bad'} kind */
 		const card = (t, kind) => el('div', {
@@ -127,7 +128,7 @@ export function createLivePanel(session, recognizer) {
 			intro,
 			el('p', { class: 'muted small' }, st ? `From ${place(start)} you usually score ${dec(st.baseline)} pts. Points above that, on races that started within one place:` : ''),
 			el('div', { class: 'stats-picks' }, el('span', { class: 'stats-picks-label' }, 'Pick'),
-				...(best.length ? best.map(t => card(t, 'good')) : [el('span', { class: 'muted' }, 'No track beats your usual from here yet.')])),
+				...(best.length ? best.map(t => card(t, 'good')) : [el('span', { class: 'muted' }, played.size && listForStart.some(t => t.edge > 0) ? 'Every track that beats your usual from here has been played this mogi.' : 'No track beats your usual from here yet.')])),
 			...(worst.length ? [el('div', { class: 'stats-picks' }, el('span', { class: 'stats-picks-label' }, 'Avoid'), ...worst.map(t => card(t, 'bad')))] : []),
 		);
 	};
