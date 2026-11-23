@@ -1,6 +1,8 @@
 // Live stats panel, shown under the scoreboard while linked to a stats server:
-// - Next track: where you start the next race (= where you just finished) and the server's
-//   "Pick a track for your start position" ranking for it: tracks to pick, and to avoid.
+// - Next track: where you start the next race (= where you just finished, or what you choose:
+//   race 1, or after the room reopened) and the server's "Pick a track for your start position"
+//   ranking for it: tracks to pick, and to avoid.
+// - Each race's start position can be changed too (it's sent with the stats).
 // - Tracks: each race's recognised track. The best guess is used as is; one click swaps to
 //   guess 2 or 3, or type any other abbreviation.
 
@@ -57,11 +59,25 @@ export function createLivePanel(session, recognizer) {
 	/** The user's roster player: the one chosen this mogi, else the remembered name if it's in the roster. */
 	const me = () => session.selfPlayer ?? [...mogi.roster].find(p => p.name === statsSettings.selfName) ?? null;
 
-	/** @param {Race} race */
-	const myPlacement = race => {
-		const p = me();
-		const row = p ? race.placements.find(r => r.playerId === p.id) : null;
-		return row ? { placement: row.placement, dc: row.dc } : null;
+	/**
+	 * Start-position picker for race number n: "auto" = the previous finish, or a place you choose.
+	 * @param {number} n
+	 * @param {import("../../player.js").Player|null} p
+	 * @param {string} label
+	 */
+	const startSelect = (n, p, label) => {
+		const { start, entered, finish } = session.startOf(n, p?.id);
+		const count = Math.max(12, mogi.roster.size);
+		const sel = /** @type {HTMLSelectElement} */(el('select', {
+			class: `stats-start${entered ? ' is-entered' : ''}${start == null ? ' is-missing' : ''}`, 'aria-label': label,
+			title: n === 1 ? 'Where you start race 1' : 'Where you start: your finish in the race before, unless the room reopened',
+		},
+			el('option', { value: '' }, finish != null ? `${place(finish)} (auto)` : '—'),
+			...Array.from({ length: count }, (_, i) => el('option', { value: String(i + 1) }, place(i + 1))),
+		));
+		sel.value = entered ? String(start) : '';
+		sel.addEventListener('change', () => session.setStart(n, sel.value ? Number(sel.value) : null));
+		return sel;
 	};
 
 	const loadStartPicks = async () => {
@@ -93,15 +109,17 @@ export function createLivePanel(session, recognizer) {
 
 		if (!p) return nextBody.replaceChildren(el('p', {}, 'To suggest a track for your start position, ', change));
 		if (mogi.ended) return nextBody.replaceChildren(el('p', { class: 'muted' }, 'Mogi finished.'));
-		const last = races.at(-1);
-		if (!last) return nextBody.replaceChildren(el('p', { class: 'muted' }, 'After each race, this shows which tracks you do best on from where you start the next one.', who, change));
-		const mine = myPlacement(last);
-		if (!mine || mine.dc || !mine.placement) {
-			return nextBody.replaceChildren(el('p', { class: 'muted' }, `Couldn't find your placement in race ${races.length}.`, who, change));
+		const n = races.length + 1;
+		const { start, entered, finish } = session.startOf(n, p.id);
+		const note = entered ? (finish != null && finish !== start ? ` · you finished ${place(finish)} in race ${n - 1}` : '')
+			: finish != null ? ` · where you finished race ${n - 1}` : '';
+		const intro = el('p', { class: 'stats-next-start' },
+			`Race ${n}: you start `, startSelect(n, p, `Your start position in race ${n}`), el('span', { class: 'muted' }, note), who, change);
+		if (start == null) {
+			return nextBody.replaceChildren(intro, el('p', { class: 'muted' }, n === 1
+				? 'Choose where you start race 1 to see which tracks to pick.'
+				: `Couldn't find your placement in race ${n - 1}. Choose where you start to see which tracks to pick.`));
 		}
-		const start = mine.placement;
-		const intro = el('p', {},
-			`You finished ${place(start)} in race ${races.length}, so you start ${place(start)} in race ${races.length + 1}.`, who, change);
 		if (startPicksError) return nextBody.replaceChildren(intro, el('p', { class: 'stats-error' }, startPicksError));
 		if (!startPicks) return nextBody.replaceChildren(intro, el('p', { class: 'muted' }, 'Loading picks…'));
 		if (!startPicks.races) return nextBody.replaceChildren(intro, el('p', { class: 'muted' }, 'No matched races with track labels on the server yet.'));
@@ -199,6 +217,7 @@ export function createLivePanel(session, recognizer) {
 			return el('li', { class: `stats-live-race${auto ? ' is-auto' : ''}` },
 				el('span', { class: 'mono muted stats-live-num' }, `R${i + 1}`),
 				el('a', { href: race.snapshotUrl, target: '_blank', rel: 'noreferrer', class: 'stats-live-thumb' }, thumb),
+				el('label', { class: 'stats-live-start' }, el('small', { class: 'muted' }, 'start'), startSelect(i + 1, me(), `Race ${i + 1} start position`)),
 				current,
 				el('span', { class: 'row stats-live-swaps' }, ...swaps, input),
 			);

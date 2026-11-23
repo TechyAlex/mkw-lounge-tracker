@@ -23,7 +23,7 @@ function uuidv4() {
 	return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }
 
-/** Fired on a StatsSession whenever a race's track label or guesses change. */
+/** Fired on a StatsSession whenever a race's track label, guesses or start position change. */
 export const LABELS_CHANGED_EVENT = 'labels';
 
 export class StatsSession extends EventTarget {
@@ -43,11 +43,59 @@ export class StatsSession extends EventTarget {
 	sent = false;
 	/** Has the "click Stats" hint been shown since the mogi ended? */
 	endHintShown = false;
+	/** @type {Map<number, number>} race timestamp => start position the user entered (1 = front) */
+	starts = new Map();
+	/** @type {number|null} start position entered for the race not captured yet (race 1, or after a reopen) */
+	nextStart = null;
+	#raceCount = 0;
 
 	/** @param {Mogi} mogi */
 	constructor(mogi) {
 		super();
 		this.mogi = mogi;
+		// When the next race is captured, the start entered for it moves onto that race.
+		// (Registered before the panel's listener, so the panel already sees it moved.)
+		mogi.addEventListener('update', () => {
+			const races = mogi.races;
+			const last = races.at(-1);
+			if (races.length > this.#raceCount && last && this.nextStart != null) {
+				this.starts.set(last.timestamp, this.nextStart);
+				this.nextStart = null;
+			}
+			this.#raceCount = races.length;
+		});
+	}
+
+	/**
+	 * Where a player started race number `n` (1-based; races.length + 1 = the next race):
+	 * what the user entered, else their finish in race n − 1 (null for race 1 or after a DC).
+	 * @param {number} n
+	 * @param {string|null|undefined} playerId
+	 * @returns {{ start: number|null, entered: boolean, finish: number|null }} finish = the previous finish
+	 */
+	startOf(n, playerId) {
+		const races = this.races;
+		const race = races[n - 1];
+		const entered = race ? this.starts.get(race.timestamp) ?? null : n === races.length + 1 ? this.nextStart : null;
+		const prev = races[n - 2];
+		const row = prev && playerId ? prev.placements.find(r => r.playerId === playerId) : null;
+		const finish = row && !row.dc && row.placement ? row.placement : null;
+		return { start: entered ?? finish, entered: entered != null, finish };
+	}
+
+	/**
+	 * Enter a start position for race number `n` (null = back to the previous finish).
+	 * @param {number} n
+	 * @param {number|null} start
+	 */
+	setStart(n, start) {
+		const race = this.races[n - 1];
+		if (race) {
+			if (start == null) this.starts.delete(race.timestamp); else this.starts.set(race.timestamp, start);
+		} else if (n === this.races.length + 1) {
+			this.nextStart = start;
+		} else return;
+		this.dispatchEvent(new Event(LABELS_CHANGED_EVENT));
 	}
 
 	/** Counted races, in the order they counted (redone races are never recorded). */
@@ -170,6 +218,7 @@ export class StatsSession extends EventTarget {
 					results,
 					capturedAt: new Date(race.timestamp).toISOString(),
 					edited: race.edited,
+					startPosition: this.startOf(i + 1, this.selfPlayer?.id).start,
 				};
 			}),
 			finalScores: roster.map(p => ({ loungeName: p.name, score: scores.get(p.id) ?? 0 })),

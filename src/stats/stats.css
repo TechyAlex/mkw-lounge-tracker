@@ -332,7 +332,7 @@ table.stats-races td {
 
 .stats-live-race {
 	display: grid;
-	grid-template-columns: 34px 96px minmax(180px, 1fr) auto;
+	grid-template-columns: 34px 96px auto minmax(180px, 1fr) auto;
 	gap: 10px;
 	align-items: center;
 	padding: 4px 6px;
@@ -374,4 +374,34 @@ table.stats-races td {
 
 .stats-live-swaps input.stats-error {
 	border-color: #ff8a80;
+}
+
+/* Start position pickers (Next track, and each race) */
+.stats-start {
+	background: #0b0b0b;
+	color: #e5e5e5;
+	border: 1px solid #333;
+	border-radius: 999px;
+	padding: 2px 6px;
+	font: inherit;
+}
+
+.stats-start.is-entered {
+	border-color: #9ccc65;
+	color: #9ccc65;
+}
+
+.stats-start.is-missing {
+	border-color: #f2b84b;
+}
+
+.stats-live-start {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+}
+
+.stats-live-start small {
+	font-size: 11px;
 }
