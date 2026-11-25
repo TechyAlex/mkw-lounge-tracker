@@ -38,5 +38,13 @@
 	{"abbr": "RCI1", "name": "Choco Island 1", "cup": null, "isRetro": true, "origin": null, "aliases": []},
 	{"abbr": "RCI2", "name": "Choco Island 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
 	{"abbr": "RVL1", "name": "Vanilla Lake 1", "cup": null, "isRetro": true, "origin": null, "aliases": []},
-	{"abbr": "RKB1", "name": "Koopa Beach 1", "cup": null, "isRetro": true, "origin": null, "aliases": []}
+	{"abbr": "RKB1", "name": "Koopa Beach 1", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "RWS2", "name": "Wario Stadium 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "RDKP2", "name": "DK Pass 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "RAF2", "name": "Airship Fortress 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "RKTB2", "name": "Koopa Troopa Beach 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "SSS2", "name": "Salty Salty Speedway 2", "cup": null, "isRetro": false, "origin": null, "aliases": []},
+	{"abbr": "MBC2", "name": "Mario Bros. Circuit 2", "cup": null, "isRetro": false, "origin": null, "aliases": []},
+	{"abbr": "RSGB2", "name": "Shy Guy Bazaar 2", "cup": null, "isRetro": true, "origin": null, "aliases": []},
+	{"abbr": "RDH2", "name": "Desert Hills 2", "cup": null, "isRetro": true, "origin": null, "aliases": []}
 ]
