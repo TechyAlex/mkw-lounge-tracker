@@ -1,4 +1,5 @@
 // Live stats panel, shown under the scoreboard while linked to a stats server:
+// - This room: MMR for each finishing place and notable people in the room (room-panel.js).
 // - Next track: where you start the next race (= where you just finished, or what you choose:
 //   race 1, or after the room reopened) and the server's "Pick a track for your start position"
 //   ranking for it: tracks to pick, and to avoid.
@@ -20,6 +21,7 @@ import { LABELS_CHANGED_EVENT } from '../session.js';
 import { statsSettings } from '../settings.js';
 import { loadTracks, splitLabel, trackLabel, UNKNOWN_ABBR } from '../tracks.js';
 import { el } from './dom.js';
+import { createRoomPanel } from './room-panel.js';
 import { pickSelf } from './self-picker.js';
 
 const PICKS_SHOWN = 5;
@@ -58,6 +60,9 @@ export function createLivePanel(session, recognizer) {
 
 	/** The user's roster player: the one chosen this mogi, else the remembered name if it's in the roster. */
 	const me = () => session.selfPlayer ?? [...mogi.roster].find(p => p.name === statsSettings.selfName) ?? null;
+
+	const room = createRoomPanel(session, me);
+	section.prepend(room.element);
 
 	/**
 	 * Start-position picker for race number n: "auto" = the previous finish, or a place you choose.
@@ -104,7 +109,7 @@ export function createLivePanel(session, recognizer) {
 		const change = el('button', { type: 'button', class: 'stats-link' }, p ? 'change' : 'Which player are you?');
 		change.addEventListener('click', async () => {
 			const name = await pickSelf(mogi, session.selfName);
-			if (name) { session.selfName = name; renderNext(); }
+			if (name) { session.selfName = name; renderNext(); room.refresh(); }
 		});
 
 		if (!p) return nextBody.replaceChildren(el('p', {}, 'To suggest a track for your start position, ', change));
@@ -232,6 +237,7 @@ export function createLivePanel(session, recognizer) {
 		section.hidden = !statsSettings.liveEnabled;
 		if (section.hidden) return;
 		if (!startPicks && !startPicksError) loadStartPicks();
+		room.refresh();
 		renderNext();
 		renderRaces();
 	};

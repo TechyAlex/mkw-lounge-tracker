@@ -405,3 +405,100 @@ table.stats-races td {
 .stats-live-start small {
 	font-size: 11px;
 }
+
+/* This room: MMR for each finishing place, notable people */
+.stats-room {
+	margin-bottom: 12px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #222;
+}
+
+.stats-room > summary {
+	cursor: pointer;
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	list-style-position: outside;
+}
+
+.stats-room > summary h2 {
+	display: inline;
+	margin: 0;
+}
+
+.stats-room .small {
+	font-size: 12px;
+}
+
+.stats-room p {
+	margin: 6px 0;
+}
+
+.stats-places {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+	gap: 4px;
+	margin: 8px 0 4px;
+}
+
+.stats-place {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 4px 2px;
+	border: 1px solid #333;
+	border-radius: 8px;
+	background: #111;
+	font-variant-numeric: tabular-nums;
+}
+
+.stats-place small {
+	color: #9a9a9a;
+	font-size: 11px;
+}
+
+.stats-place strong {
+	font-size: 14px;
+}
+
+.stats-place.is-gain { border-color: #2e5e2e; }
+.stats-place.is-gain strong { color: #9ccc65; }
+.stats-place.is-loss { border-color: #6b2b2b; }
+.stats-place.is-loss strong { color: #ff8a80; }
+.stats-place.is-seed { background: #1a1a1a; }
+.stats-place.is-now { outline: 2px solid #e0e0e0; outline-offset: -1px; }
+
+.stats-place .stats-place-mark {
+	font-size: 10px;
+	color: #e0e0e0;
+	white-space: nowrap;
+}
+
+.stats-people {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 8px;
+	align-items: center;
+	margin: 6px 0;
+}
+
+.stats-people-label {
+	width: 100%;
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.stats-person {
+	padding: 5px 10px;
+	border: 1px solid #333;
+	border-radius: 10px;
+	background: #111;
+}
+
+.stats-person.is-good { border-color: #2e5e2e; }
+.stats-person.is-bad { border-color: #6b2b2b; }
+
+.stats-person-detail {
+	color: #9a9a9a;
+	font-size: 12px;
+}

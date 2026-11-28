@@ -186,3 +186,19 @@ export async function fetchStartPicks(playerId) {
 	if (!res.ok) throw new Error(`HTTP ${res.status}`);
 	return res.json();
 }
+
+/**
+ * Room preview (public): your MMR change for each finishing place, and who in the room you have a history with.
+ * @param {{mmr:number, names:string[]}[]} teams One entry per team (FFA: one name each), MMR as in the room list
+ * @param {string|null} self Your roster name, if known
+ * @param {number|null} [playerId]
+ * @returns {Promise<any>} { format, teams, roomAvg, self: {team, mmr, vsRoom, seedPlace, places[], breakEven}|null, players[] }
+ */
+export async function fetchRoom(teams, self, playerId) {
+	const q = playerId ? `?player=${playerId}` : '';
+	const res = await request(`/api/stats/room${q}`, {
+		method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teams, self }),
+	}, { auth: false });
+	if (!res.ok) throw new Error(`HTTP ${res.status}`);
+	return res.json();
+}
